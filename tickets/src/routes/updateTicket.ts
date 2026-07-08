@@ -6,7 +6,9 @@ import {
   validateRequest,
   NotAuthorizedError,
 } from "@akmicrotix/common";
-import { body } from "express-validator/lib/middlewares/validation-chain-builders";
+import { body } from "express-validator";
+import { TicketUpdatedPublisher } from "../events/publishers/ticket-updated-publisher";
+import { natsWrapper } from "../nats-wrapper";
 
 const router = express.Router();
 
@@ -34,6 +36,14 @@ router.put(
     const { title, price } = req.body;
     ticket.set({ title, price });
     await ticket.save();
+
+    new TicketUpdatedPublisher(natsWrapper.client).publish({
+      id: ticket.id,
+      title: ticket.title,
+      price: ticket.price,
+      userId: ticket.userId,
+    });
+
     res.status(200).send(ticket);
   },
 );

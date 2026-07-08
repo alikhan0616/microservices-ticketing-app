@@ -2,6 +2,7 @@ import request from "supertest";
 import { app } from "../../app";
 import mongoose from "mongoose";
 import { signin } from "../../test/authHelper";
+import { natsWrapper } from "../../nats-wrapper";
 
 it("returns a 404 if the ticket is not found", async () => {
   const id = new mongoose.Types.ObjectId().toHexString();
@@ -106,4 +107,27 @@ it("returns a 400 and ticket is not updated when the updated values are invalid 
     .set("Cookie", signin())
     .send({})
     .expect(400);
+});
+
+it("Publishes an event", async () => {
+  const cookie = signin();
+  const response = await request(app)
+    .post("/api/tickets")
+    .set("Cookie", cookie)
+    .send({
+      title: "Test Ticket",
+      price: 20,
+    })
+    .expect(201);
+
+  await request(app)
+    .put(`/api/tickets/${response.body.id}`)
+    .set("Cookie", cookie)
+    .send({
+      title: "Updated Ticket",
+      price: 30,
+    })
+    .expect(200);
+
+  expect(natsWrapper.client.publish).toHaveBeenCalled();
 });
