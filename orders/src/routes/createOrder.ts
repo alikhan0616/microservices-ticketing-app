@@ -1,12 +1,22 @@
 import express, { Request, Response } from "express";
-import { requireAuth, validateRequest } from "@akmicrotix/common";
+import {
+  BadRequestError,
+  NotFoundError,
+  OrderStatus,
+  requireAuth,
+  validateRequest,
+} from "@akmicrotix/common";
 import { body } from "express-validator";
 import mongoose from "mongoose";
+import { Ticket } from "../models/ticketSchema";
+import { Order } from "../models/orderSchema";
 
 const router = express.Router();
 
+const EXPIRATION_WINDOW_SECONDS = 15 * 60; // 15 minutes
+
 router.post(
-  "/orders",
+  "/api/orders",
   requireAuth,
   [
     body("ticketId")
@@ -17,7 +27,38 @@ router.post(
   ],
   validateRequest,
   async (req: Request, res: Response) => {
-    res.status(200).json({ message: "Create order route" });
+    const { ticketId } = req.body;
+
+    // Find the ticket the user is trying to order in the database
+    console.log(ticketId, "TicketID");
+    const ticket = await Ticket.findById(ticketId);
+
+    if (!ticket) {
+      throw new NotFoundError();
+    }
+
+    // Make sure that this ticket is not already reserved
+
+    if (await ticket.isReserved()) {
+      throw new BadRequestError("Ticket is already reserved");
+    }
+    // Calculate an expiration date for this order
+
+    const expiration = new Date();
+    expiration.setSeconds(expiration.getSeconds() + EXPIRATION_WINDOW_SECONDS);
+
+    // Build the order and save it to the database
+
+    const order = await Order.create({
+      userId: req.currentUser!.id,
+      status: OrderStatus.Created,
+      expiresAt: expiration,
+      ticket: ticket,
+    });
+
+    // Publish an event saying that an order was created
+
+    res.status(201).send(order);
   },
 );
 

@@ -1,8 +1,11 @@
-import mongoose, { Schema, model, HydratedDocument } from "mongoose";
+import { Schema, model, HydratedDocument } from "mongoose";
+import Order from "./orderSchema";
+import { OrderStatus } from "@akmicrotix/common";
 
 interface ITicket {
   title: string;
   price: number;
+  isReserved(): Promise<boolean>;
 }
 
 const ticketSchema = new Schema<ITicket>(
@@ -19,6 +22,23 @@ const ticketSchema = new Schema<ITicket>(
     },
   },
 );
+
+// Run Query to look at all orders. Find an order where the ticket is the ticket we just found *and* the orders status is *not* cancelled. If we find an order from that means the ticket *is* reserved
+
+ticketSchema.methods.isReserved = async function () {
+  const existingOrder = await Order.findOne({
+    ticket: this,
+    status: {
+      $in: [
+        OrderStatus.Created,
+        OrderStatus.AwaitingPayment,
+        OrderStatus.Complete,
+      ],
+    },
+  });
+
+  return !!existingOrder;
+};
 
 export type ITicketDoc = HydratedDocument<ITicket>;
 
