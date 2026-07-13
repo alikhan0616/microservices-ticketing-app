@@ -1,6 +1,9 @@
 import mongose from "mongoose";
 import { app } from "./app";
 import { natsWrapper } from "./nats-wrapper";
+import { TicketCreatedListener } from "./events/listeners/ticket-created-listner";
+import { TicketUpdatedListener } from "./events/listeners/ticket-updated-listner";
+
 const start = async () => {
   if (!process.env.JWT_KEY) {
     throw new Error("JWT_KEY must be defined");
@@ -19,6 +22,7 @@ const start = async () => {
   if (!process.env.NATS_URL) {
     throw new Error("NATS_URL must be defined");
   }
+
   try {
     await natsWrapper.connect(
       process.env.NATS_CLUSTER_ID,
@@ -30,6 +34,10 @@ const start = async () => {
       console.log("NATS connection closed!");
       process.exit();
     });
+
+    new TicketCreatedListener(natsWrapper.client).listen();
+    new TicketUpdatedListener(natsWrapper.client).listen();
+
     await mongose.connect(process.env.MONGO_URI);
     console.log("Connected to MongoDB - Orders Service");
   } catch (err) {
