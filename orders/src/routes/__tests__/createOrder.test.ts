@@ -6,6 +6,8 @@ import { Order } from "../../models/orderSchema";
 import { Ticket } from "../../models/ticketSchema";
 import { OrderStatus } from "@akmicrotix/common";
 
+import { natsWrapper } from "../../nats-wrapper";
+
 it("returns an error if the ticket does not exist", async () => {
   const ticketId = new mongoose.Types.ObjectId();
 
@@ -49,4 +51,17 @@ it("reserves a ticket", async () => {
     .expect(201);
 });
 
-it.todo("Publishes an event");
+it("Publishes an event", async () => {
+  const ticket = await Ticket.create({
+    title: "test",
+    price: 20,
+  });
+
+  await request(app)
+    .post("/api/orders")
+    .set("Cookie", signin())
+    .send({ ticketId: ticket.id })
+    .expect(201);
+
+  expect(natsWrapper.client.publish).toHaveBeenCalled();
+});

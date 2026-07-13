@@ -3,6 +3,7 @@ import { app } from "../../app";
 import { Ticket } from "../../models/ticketSchema";
 import { signin } from "../../test/authHelper";
 import { OrderStatus } from "@akmicrotix/common";
+import { natsWrapper } from "../../nats-wrapper";
 
 it("cancel an order", async () => {
   // Create a ticket
@@ -35,4 +36,27 @@ it("cancel an order", async () => {
   expect(cancelledOrder.status).toEqual(OrderStatus.Cancelled);
 });
 
-it.todo("emits an order cancelled event");
+it("emits an order cancelled event", async () => {
+  // Create a ticket
+  const ticket = await Ticket.create({
+    title: "concert",
+    price: 20,
+  });
+
+  const user = signin();
+
+  // Create an order
+  const { body: order } = await request(app)
+    .post("/api/orders")
+    .set("Cookie", user)
+    .send({ ticketId: ticket.id })
+    .expect(201);
+
+  // Cancel the order
+  await request(app)
+    .delete(`/api/orders/${order.id}`)
+    .set("Cookie", user)
+    .expect(204);
+
+  expect(natsWrapper.client.publish).toHaveBeenCalled();
+});
