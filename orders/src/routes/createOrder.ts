@@ -30,7 +30,6 @@ router.post(
     const { ticketId } = req.body;
 
     // Find the ticket the user is trying to order in the database
-    console.log(ticketId, "TicketID");
     const ticket = await Ticket.findById(ticketId);
 
     if (!ticket) {
