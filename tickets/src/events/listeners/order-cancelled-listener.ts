@@ -1,16 +1,14 @@
-import { Listener, OrderCreatedEvent } from "@akmicrotix/common";
-import { Subjects } from "@akmicrotix/common";
+import { Listener, OrderCancelledEvent, Subjects } from "@akmicrotix/common";
 import { queueGroupName } from "./queue-group-name";
 import { Message } from "node-nats-streaming";
 import { Ticket } from "../../models/ticketSchema";
 import { TicketUpdatedPublisher } from "../publishers/ticket-updated-publisher";
 
-export class OrderCreatedListener extends Listener<OrderCreatedEvent> {
-  subject: Subjects.OrderCreated = Subjects.OrderCreated;
+export class OrderCancelledListener extends Listener<OrderCancelledEvent> {
+  subject: Subjects.OrderCancelled = Subjects.OrderCancelled;
   queueGroupName = queueGroupName;
 
-  async onMessage(data: OrderCreatedEvent["data"], msg: Message) {
-    // Search for ticket that the order is reserving
+  async onMessage(data: OrderCancelledEvent["data"], msg: Message) {
     const ticket = await Ticket.findById(data.ticket.id);
 
     if (!ticket) {
@@ -18,21 +16,29 @@ export class OrderCreatedListener extends Listener<OrderCreatedEvent> {
     }
 
     // Mark the ticket as being reserved by setting its orderId property
-    ticket.set({ orderId: data.id });
+    ticket.set({ orderId: undefined });
 
     // Save the ticket (This updates the version number)
     await ticket.save();
 
-    await new TicketUpdatedPublisher(this.client).publish({
+    const payload: {
+      id: string;
+      version: number;
+      title: string;
+      price: number;
+      userId: string;
+      orderId?: string;
+    } = {
       id: ticket.id,
       version: ticket.version,
       title: ticket.title,
       price: ticket.price,
       userId: ticket.userId,
-      orderId: data.id,
-    });
+    };
 
-    // Acknowledge the message
+    await new TicketUpdatedPublisher(this.client).publish(payload);
+
+    // Ack the msg
     msg.ack();
   }
 }

@@ -3,6 +3,7 @@ import { app } from "../../app";
 import mongoose from "mongoose";
 import { signin } from "../../test/authHelper";
 import { natsWrapper } from "../../nats-wrapper";
+import { Ticket } from "../../models/ticketSchema";
 
 it("returns a 404 if the ticket is not found", async () => {
   const id = new mongoose.Types.ObjectId().toHexString();
@@ -130,4 +131,31 @@ it("Publishes an event", async () => {
     .expect(200);
 
   expect(natsWrapper.client.publish).toHaveBeenCalled();
+});
+
+it("rejects updates if the ticket is reserved", async () => {
+  const cookie = signin();
+  const response = await request(app)
+    .post("/api/tickets")
+    .set("Cookie", cookie)
+    .send({
+      title: "Test Ticket",
+      price: 20,
+    })
+    .expect(201);
+
+  const ticket = await Ticket.findById(response.body.id);
+
+  ticket!.set({ orderId: new mongoose.Types.ObjectId().toHexString() });
+  await ticket!.save();
+
+  // Simulate reserving the ticket by setting an orderId
+  await request(app)
+    .put(`/api/tickets/${ticket!.id}`)
+    .set("Cookie", cookie)
+    .send({
+      title: "Updated Ticket",
+      price: 30,
+    })
+    .expect(400);
 });
