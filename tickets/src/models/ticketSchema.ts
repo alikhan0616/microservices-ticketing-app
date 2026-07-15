@@ -6,6 +6,7 @@ interface ITicket {
   price: number;
   userId: string;
   version: number;
+  orderId?: string; // Optional field to store the order ID if the ticket is reserved
 }
 
 const ticketSchema = new Schema<ITicket>(
@@ -13,6 +14,7 @@ const ticketSchema = new Schema<ITicket>(
     title: { type: String, required: true },
     price: { type: Number, required: true },
     userId: { type: String, required: true },
+    orderId: { type: String }, // Optional field to store the order ID if the ticket is reserved
   },
   {
     toJSON: {

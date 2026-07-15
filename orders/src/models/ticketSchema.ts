@@ -8,6 +8,7 @@ interface ITicket {
   price: number;
   isReserved(): Promise<boolean>;
   version: number;
+  id: string;
 }
 
 interface TicketModel extends Model<ITicket> {

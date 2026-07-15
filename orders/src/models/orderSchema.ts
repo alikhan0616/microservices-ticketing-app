@@ -1,6 +1,8 @@
 import mongoose, { Schema, model, HydratedDocument } from "mongoose";
 import { OrderStatus } from "@akmicrotix/common";
 import { ITicketDoc } from "./ticketSchema";
+import { updateIfCurrentPlugin } from "mongoose-update-if-current";
+
 interface IOrder {
   userId: string;
   status: OrderStatus;
@@ -33,6 +35,9 @@ const orderSchema = new Schema<IOrder>(
     },
   },
 );
+
+orderSchema.set("versionKey", "version");
+orderSchema.plugin(updateIfCurrentPlugin);
 
 export type IOrderDoc = HydratedDocument<IOrder>;
 
