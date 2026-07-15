@@ -1,9 +1,11 @@
 import { Schema, model, HydratedDocument } from "mongoose";
+import { updateIfCurrentPlugin } from "mongoose-update-if-current";
 
 interface ITicket {
   title: string;
   price: number;
   userId: string;
+  version?: number;
 }
 
 const ticketSchema = new Schema<ITicket>(
@@ -21,6 +23,9 @@ const ticketSchema = new Schema<ITicket>(
     },
   },
 );
+
+ticketSchema.set("versionKey", "version");
+ticketSchema.plugin(updateIfCurrentPlugin);
 
 export type ITicketDoc = HydratedDocument<ITicket>;
 
