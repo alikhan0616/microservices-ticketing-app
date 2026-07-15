@@ -5,7 +5,7 @@ interface ITicket {
   title: string;
   price: number;
   userId: string;
-  version?: number;
+  version: number;
 }
 
 const ticketSchema = new Schema<ITicket>(

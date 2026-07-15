@@ -6,6 +6,7 @@ interface IOrder {
   status: OrderStatus;
   expiresAt: Date;
   ticket: ITicketDoc;
+  version: number;
 }
 
 const orderSchema = new Schema<IOrder>(

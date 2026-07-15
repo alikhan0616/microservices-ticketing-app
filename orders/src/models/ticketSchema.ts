@@ -1,11 +1,20 @@
-import { Schema, model, HydratedDocument } from "mongoose";
+import { Schema, model, HydratedDocument, Model } from "mongoose";
 import Order from "./orderSchema";
 import { OrderStatus } from "@akmicrotix/common";
+import { updateIfCurrentPlugin } from "mongoose-update-if-current";
 
 interface ITicket {
   title: string;
   price: number;
   isReserved(): Promise<boolean>;
+  version: number;
+}
+
+interface TicketModel extends Model<ITicket> {
+  findByEvent(event: {
+    id: string;
+    version: number;
+  }): Promise<ITicketDoc | null>;
 }
 
 const ticketSchema = new Schema<ITicket>(
@@ -22,6 +31,9 @@ const ticketSchema = new Schema<ITicket>(
     },
   },
 );
+
+ticketSchema.set("versionKey", "version");
+ticketSchema.plugin(updateIfCurrentPlugin);
 
 // Run Query to look at all orders. Find an order where the ticket is the ticket we just found *and* the orders status is *not* cancelled. If we find an order from that means the ticket *is* reserved
 
@@ -40,8 +52,20 @@ ticketSchema.methods.isReserved = async function () {
   return !!existingOrder;
 };
 
+// Add a static method to the ticketSchema to find a ticket by event data (id and version)
+
+ticketSchema.statics.findByEvent = async function (event: {
+  id: string;
+  version: number;
+}) {
+  return await this.findOne({
+    _id: event.id,
+    version: event.version - 1,
+  });
+};
+
 export type ITicketDoc = HydratedDocument<ITicket>;
 
-export const Ticket = model<ITicket>("Ticket", ticketSchema);
+export const Ticket = model<ITicket, TicketModel>("Ticket", ticketSchema);
 
 export default Ticket;
