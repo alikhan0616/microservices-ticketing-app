@@ -1,6 +1,8 @@
 import mongose from "mongoose";
 import { app } from "./app";
 import { natsWrapper } from "./nats-wrapper";
+import { OrderCancelledListener } from "./events/listeners/order-cancelled-listener";
+import { OrderCreatedListener } from "./events/listeners/order-created-listener";
 
 const start = async () => {
   if (!process.env.JWT_KEY) {
@@ -20,6 +22,11 @@ const start = async () => {
   if (!process.env.NATS_URL) {
     throw new Error("NATS_URL must be defined");
   }
+
+  if (!process.env.STRIPE_KEY) {
+    throw new Error("STRIPE_KEY must be defined");
+  }
+
   try {
     await natsWrapper.connect(
       process.env.NATS_CLUSTER_ID,
@@ -31,6 +38,9 @@ const start = async () => {
       console.log("NATS connection closed!");
       process.exit();
     });
+
+    new OrderCreatedListener(natsWrapper.client).listen();
+    new OrderCancelledListener(natsWrapper.client).listen();
 
     await mongose.connect(process.env.MONGO_URI);
     console.log("Connected to MongoDB - Payment Service");

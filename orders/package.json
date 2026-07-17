@@ -19,7 +19,7 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "@akmicrotix/common": "^1.0.19",
+    "@akmicrotix/common": "^1.0.20",
     "@types/cookie-session": "^2.0.49",
     "@types/express": "^4.17.25",
     "@types/jsonwebtoken": "^9.0.10",

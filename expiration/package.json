@@ -19,7 +19,7 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "@akmicrotix/common": "^1.0.19",
+    "@akmicrotix/common": "^1.0.20",
     "bullmq": "^5.80.5",
     "ioredis": "^5.11.1",
     "node-nats-streaming": "^0.3.2",
