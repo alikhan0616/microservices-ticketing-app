@@ -5,9 +5,9 @@ import { Order } from "../models/orderSchema";
 const router = express.Router();
 
 router.get("/api/orders", requireAuth, async (req: Request, res: Response) => {
-  const orders = await Order.find({ userId: req.currentUser!.id }).populate(
-    "ticket",
-  );
+  const orders = await Order.find({ userId: req.currentUser!.id })
+    .sort({ _id: -1 })
+    .populate("ticket");
   res.status(200).json(orders);
 });
 

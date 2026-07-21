@@ -80,7 +80,12 @@ it("returns a 204 with invalid inputs", async () => {
   const paymentIntentOptions = (stripe.paymentIntents.create as jest.Mock).mock
     .calls[0][0];
 
-  expect(paymentIntentOptions.payment_method).toEqual("pm_card_visa");
+  expect(paymentIntentOptions.payment_method_data).toEqual({
+    type: "card",
+    card: {
+      token: "pm_card_visa",
+    },
+  });
   expect(paymentIntentOptions.amount).toEqual(order.price * 100);
   expect(paymentIntentOptions.currency).toEqual("usd");
 

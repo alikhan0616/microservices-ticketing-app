@@ -47,7 +47,12 @@ router.post(
     const stripeResponse = await stripe.paymentIntents.create({
       currency: "usd",
       amount: order.price * 100,
-      payment_method: token,
+      payment_method_data: {
+        type: "card",
+        card: {
+          token,
+        },
+      } as any,
       confirm: true,
       automatic_payment_methods: { enabled: true, allow_redirects: "never" },
     });
