@@ -7,8 +7,13 @@ import {
   NotAuthorizedError,
   OrderStatus,
   BadRequestError,
+  Subjects,
 } from "@akmicrotix/common";
 import { Order } from "../models/orderSchema";
+import { stripe } from "../stripe";
+import { Payment } from "../models/paymentSchema";
+import { natsWrapper } from "../nats-wrapper";
+import { PaymentCreatedPublisher } from "../events/publishers/payment-created-publisher";
 
 const router = express.Router();
 
@@ -16,12 +21,12 @@ router.post(
   "/api/payments",
   requireAuth,
   [
-    body("token").not().isEmpty().withMessage("Token is required"),
     body("orderId").not().isEmpty().withMessage("OrderId is required"),
+    body("token").not().isEmpty().withMessage("Token is required"),
   ],
   validateRequest,
   async (req: Request, res: Response) => {
-    const { token, orderId } = req.body;
+    const { orderId, token } = req.body;
 
     const order = await Order.findById(orderId);
 
@@ -39,7 +44,26 @@ router.post(
       );
     }
 
-    res.send(200).json({});
+    const stripeResponse = await stripe.paymentIntents.create({
+      currency: "usd",
+      amount: order.price * 100,
+      payment_method: token,
+      confirm: true,
+      automatic_payment_methods: { enabled: true, allow_redirects: "never" },
+    });
+
+    const payment = await Payment.build({
+      orderId,
+      stripeId: stripeResponse.id,
+    });
+
+    new PaymentCreatedPublisher(natsWrapper.client).publish({
+      id: payment.id,
+      orderId: payment.orderId,
+      stripeId: payment.stripeId,
+    });
+
+    res.status(201).json({ id: payment.id });
   },
 );
 
