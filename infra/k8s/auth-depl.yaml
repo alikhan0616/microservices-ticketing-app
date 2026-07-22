@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: auth
-          image: registry.digitalocean.com/ticketing-ak098/auth
+          image: alikhan0616/auth
           env:
             - name: MONGO_URI
               value: mongodb://auth-mongo-srv:27017/auth
