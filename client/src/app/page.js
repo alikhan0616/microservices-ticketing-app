@@ -1,63 +1,81 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import buildClient from "../../api/build-client";
-import { useCurrentUser } from "../context/current-user-context";
+import { headers } from "next/headers";
 import Link from "next/link";
-export default function Home() {
-  const currentUser = useCurrentUser();
-  const [tickets, setTickets] = useState([]);
-  const [loading, setLoading] = useState(true);
+import buildClient from "../../api/build-client";
 
-  useEffect(() => {
-    const loadTickets = async () => {
-      try {
-        const client = buildClient();
-        const response = await client.get("/api/tickets");
-        setTickets(response.data || []);
-        setLoading(false);
-      } catch (error) {
-        console.error("Client-side ticket fetch failed:", error);
-      }
-    };
+async function getTickets() {
+  try {
+    const requestHeaders = await headers();
+    const client = buildClient({ headers: requestHeaders });
+    const response = await client.get("/api/tickets");
+    return response.data || [];
+  } catch (error) {
+    console.error("Server-side ticket fetch failed:", error);
+    return [];
+  }
+}
 
-    loadTickets();
-  }, []);
+export default async function Home() {
+  const tickets = await getTickets();
 
-  const ticketList =
-    tickets &&
-    tickets.map((ticket) => (
-      <tr key={ticket.id}>
-        <td>{ticket.title}</td>
-        <td>${ticket.price.toFixed(2)}</td>
-        <td>
-          <Link href={`/tickets/${ticket.id}`}>View</Link>
-        </td>
-      </tr>
-    ));
   return (
-    <div className="container mt-5 p-2">
-      <h1>Welcome to the Ticketing App</h1>
-      {currentUser ? (
-        <h1>Logged in as: {currentUser.email}</h1>
+    <>
+      <section className="hero">
+        <div className="hero__content">
+          <span className="eyebrow hero__eyebrow">Live marketplace</span>
+          <h1>Great seats to the moments that matter.</h1>
+          <p>
+            Browse tickets listed by real people, or sell your own in seconds.
+            Secure checkout, no fuss.
+          </p>
+          <div className="hero__actions">
+            <Link href="/tickets/new" className="btn btn--primary">
+              Sell a ticket
+            </Link>
+            <span className="hero__pill">
+              {tickets.length}{" "}
+              {tickets.length === 1 ? "listing" : "listings"} available
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <div className="section-head">
+        <div>
+          <span className="eyebrow">Browse</span>
+          <h2 style={{ fontSize: 24, marginTop: 6 }}>Available tickets</h2>
+        </div>
+      </div>
+
+      {tickets.length === 0 ? (
+        <div className="state">
+          <span className="state__icon">🎫</span>
+          <p style={{ fontWeight: 600, color: "var(--ink)" }}>
+            No tickets available yet
+          </p>
+          <p>Be the first to list one for sale.</p>
+        </div>
       ) : (
-        <h1>You are not logged in.</h1>
+        <div className="ticket-grid">
+          {tickets.map((ticket) => (
+            <Link
+              key={ticket.id}
+              href={`/tickets/${ticket.id}`}
+              className="ticket-card"
+            >
+              <div className="ticket-card__stub">
+                <div className="ticket-card__label">Admit one</div>
+                <div className="ticket-card__title">{ticket.title}</div>
+              </div>
+              <div className="ticket-card__body">
+                <div className="ticket-card__price">
+                  ${ticket.price.toFixed(2)}
+                </div>
+                <span className="btn btn--ghost btn--sm">View</span>
+              </div>
+            </Link>
+          ))}
+        </div>
       )}
-      <h2>Available Tickets</h2>
-      {loading && <>Loading...</>}
-      {!loading && tickets.length === 0 ? <p>No tickets available.</p> : null}
-      {tickets.length > 0 && (
-        <table className="table table-striped">
-          <thead>
-            <tr>
-              <th>Title</th>
-              <th>Price</th>
-              <th>View</th>
-            </tr>
-          </thead>
-          <tbody>{ticketList}</tbody>
-        </table>
-      )}
-    </div>
+    </>
   );
 }

@@ -15,6 +15,7 @@ export default function Ticket() {
       router.push("/");
     },
   });
+
   const onBlur = () => {
     const value = parseFloat(price);
     if (isNaN(value)) {
@@ -27,34 +28,52 @@ export default function Ticket() {
     event.preventDefault();
     await doRequest();
   };
+
   return (
-    <div>
-      <h1>Create a Ticket</h1>
-      <form onSubmit={onSubmit}>
-        <div className="form-group">
-          <label htmlFor="title">Title</label>
-          <input
-            type="text"
-            className="form-control"
-            id="title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
-        </div>
-        <div className="form-group">
-          <label htmlFor="title">Price</label>
-          <input
-            onBlur={onBlur}
-            type="text"
-            className="form-control"
-            id="title"
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-          />
-        </div>
-        {errors}
-        <button className="btn btn-primary">Submit</button>
-      </form>
+    <div className="card form-card mt-6">
+      <div className="card__body">
+        <span className="eyebrow">New listing</span>
+        <h1 className="page-title" style={{ fontSize: 26, marginTop: 6 }}>
+          Create a ticket
+        </h1>
+        <p className="muted" style={{ fontSize: 14 }}>
+          Give it a clear title and a fair price.
+        </p>
+
+        <form onSubmit={onSubmit} className="mt-4">
+          <div className="field">
+            <label className="field__label" htmlFor="title">
+              Title
+            </label>
+            <input
+              type="text"
+              className="input"
+              id="title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="e.g. Front row — Coldplay"
+            />
+          </div>
+          <div className="field">
+            <label className="field__label" htmlFor="price">
+              Price (USD)
+            </label>
+            <input
+              onBlur={onBlur}
+              type="text"
+              className="input"
+              id="price"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              placeholder="0.00"
+            />
+          </div>
+          {errors}
+          <button className="btn btn--primary btn--block mt-2">
+            Publish ticket
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

@@ -2,7 +2,6 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { headers } from "next/headers";
 import buildClient from "../../api/build-client";
 import { CurrentUserProvider } from "../context/current-user-context";
-import "bootstrap/dist/css/bootstrap.min.css";
 import "./globals.css";
 import Header from "../../components/header";
 
@@ -39,8 +38,18 @@ export default async function RootLayout({ children }) {
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body>
         <CurrentUserProvider currentUser={currentUser}>
-          <Header />
-          <div className="container">{children}</div>
+          <div className="app-shell">
+            <Header />
+            <main className="page">
+              <div className="container">{children}</div>
+            </main>
+            <footer className="site-footer">
+              <div className="container site-footer__inner">
+                <span>© {new Date().getFullYear()} MicroTix</span>
+                <span>Buy and sell event tickets.</span>
+              </div>
+            </footer>
+          </div>
         </CurrentUserProvider>
       </body>
     </html>

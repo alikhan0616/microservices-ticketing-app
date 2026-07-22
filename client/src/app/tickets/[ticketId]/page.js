@@ -1,10 +1,10 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import useRequest from "../../../../hooks/use-request";
 import buildClient from "../../../../api/build-client";
-import { useRouter } from "next/navigation";
+
 export default function TicketPage() {
   const { ticketId } = useParams();
   const [ticket, setTicket] = useState(null);
@@ -42,21 +42,44 @@ export default function TicketPage() {
   }, [ticketId]);
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="state mt-6">
+        <p>Loading ticket…</p>
+      </div>
+    );
   }
 
   if (!ticket) {
-    return <div>Ticket not found.</div>;
+    return (
+      <div className="state mt-6">
+        <span className="state__icon">🔍</span>
+        <p style={{ fontWeight: 600, color: "var(--ink)" }}>Ticket not found</p>
+        <p>This listing may have been sold or removed.</p>
+      </div>
+    );
   }
 
   return (
-    <div>
-      <div>Ticket Page: {ticket.title}</div>
-      <div>Price: ${ticket.price.toFixed(2)}</div>
-      {errors}
-      <button className="btn btn-primary" onClick={() => doRequest()}>
-        Purchase
-      </button>
+    <div className="card form-card mt-6">
+      <div className="ticket-card__stub" style={{ borderRadius: "12px 12px 0 0" }}>
+        <div className="ticket-card__label">Admit one</div>
+        <div className="ticket-card__title">{ticket.title}</div>
+      </div>
+      <div className="card__body">
+        <div className="detail-row">
+          <span className="detail-row__key">Price</span>
+          <span className="detail-row__val ticket-card__price">
+            ${ticket.price.toFixed(2)}
+          </span>
+        </div>
+        {errors}
+        <button
+          className="btn btn--primary btn--block mt-4"
+          onClick={() => doRequest()}
+        >
+          Purchase ticket
+        </button>
+      </div>
     </div>
   );
 }

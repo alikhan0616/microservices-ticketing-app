@@ -15,9 +15,9 @@ export default function useRequest({ url, method, body, onSuccess }) {
       return response.data;
     } catch (err) {
       setErrors(
-        <div className="alert alert-danger">
-          <h4>Ooops...</h4>
-          <ul className="my-0">
+        <div className="alert alert--danger">
+          <h4 className="alert__title">Oops — something went wrong</h4>
+          <ul>
             {err.response.data.errors.map((error) => (
               <li key={error.message}>{error.message}</li>
             ))}

@@ -17,6 +17,17 @@ const stripePromise = loadStripe(
   "pk_test_51TuDCGC51Zz3govpZoZjAhM3IKmXxK9v11AHXusMfctuP3SdHCkOVZjrRXzKxKgYkqTPTTB51SvFn8scWAmP0quK00eqDwz5Uw",
 );
 
+const CARD_STYLE = {
+  style: {
+    base: {
+      fontSize: "15px",
+      color: "#1a1a1a",
+      fontFamily: "inherit",
+      "::placeholder": { color: "#8b8880" },
+    },
+  },
+};
+
 function CheckoutForm({ doRequest }) {
   const stripe = useStripe();
   const elements = useElements();
@@ -65,25 +76,28 @@ function CheckoutForm({ doRequest }) {
 
   if (paymentComplete) {
     return (
-      <div className="alert alert-success">Payment completed successfully.</div>
+      <div className="alert alert--success">Payment completed successfully.</div>
     );
   }
 
   return (
     <form onSubmit={onSubmit}>
-      <div className="form-group mb-3">
-        <label className="form-label">Card details</label>
-        <div className="form-control py-3">
-          <CardElement />
+      <div className="field">
+        <label className="field__label">Card details</label>
+        <div className="input input--box">
+          <CardElement options={CARD_STYLE} />
         </div>
       </div>
 
       {errorMessage ? (
-        <div className="alert alert-danger">{errorMessage}</div>
+        <div className="alert alert--danger">{errorMessage}</div>
       ) : null}
 
-      <button className="btn btn-primary" disabled={!stripe || isSubmitting}>
-        {isSubmitting ? "Processing..." : "Pay Now"}
+      <button
+        className="btn btn--primary btn--block"
+        disabled={!stripe || isSubmitting}
+      >
+        {isSubmitting ? "Processing…" : "Pay now"}
       </button>
     </form>
   );
@@ -93,14 +107,13 @@ export default function OrderPage() {
   const { orderId } = useParams();
   const [order, setOrder] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [timeLeft, setTimeLeft] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(null);
   const router = useRouter();
 
   const { doRequest, errors } = useRequest({
     url: "/api/payments",
     method: "post",
     body: { orderId }, // token will be set dynamically
-
     onSuccess: () => {
       router.push("/orders");
     },
@@ -134,40 +147,80 @@ export default function OrderPage() {
     }
 
     const findTimeLeft = () => {
-      const msLeft =
-        new Date(order?.expiresAt).getTime() - new Date().getTime();
+      const msLeft = new Date(order.expiresAt).getTime() - Date.now();
       setTimeLeft(Math.round(msLeft / 1000));
     };
     findTimeLeft();
     const timerId = setInterval(findTimeLeft, 1000);
 
-    return () => {
-      clearInterval(timerId);
-    };
+    return () => clearInterval(timerId);
   }, [order]);
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="state mt-6">
+        <p>Loading order…</p>
+      </div>
+    );
   }
 
   if (!order) {
-    return <div>Order not found.</div>;
+    return (
+      <div className="state mt-6">
+        <span className="state__icon">🔍</span>
+        <p style={{ fontWeight: 600, color: "var(--ink)" }}>Order not found</p>
+      </div>
+    );
   }
 
-  if (timeLeft < 0) {
-    return <div>Order Expired</div>;
-  }
+  const expired = timeLeft !== null && timeLeft <= 0;
+
   return (
-    <div>
-      <h1>Order Details</h1>
-      <p>Order ID: {orderId}</p>
-      <p>Ticket Title: {order.ticket.title}</p>
-      <p>Ticket Price: ${order.ticket.price.toFixed(2)}</p>
-      <p>Remaining Time Left to Pay: {timeLeft} seconds</p>
-      {errors}
-      <Elements stripe={stripePromise}>
-        <CheckoutForm doRequest={doRequest} />
-      </Elements>
+    <div className="card form-card mt-6">
+      <div className="card__body">
+        <span className="eyebrow">Checkout</span>
+        <h1 className="page-title" style={{ fontSize: 26, marginTop: 6 }}>
+          Complete your order
+        </h1>
+
+        <div className="mt-4">
+          <div className="detail-row">
+            <span className="detail-row__key">Ticket</span>
+            <span className="detail-row__val">{order.ticket.title}</span>
+          </div>
+          <div className="detail-row">
+            <span className="detail-row__key">Price</span>
+            <span className="detail-row__val">
+              ${order.ticket.price.toFixed(2)}
+            </span>
+          </div>
+          <div className="detail-row">
+            <span className="detail-row__key">Order ID</span>
+            <span className="detail-row__val detail-row__val--mono">
+              {orderId}
+            </span>
+          </div>
+        </div>
+
+        {expired ? (
+          <div className="countdown countdown--danger">
+            <span>This order has expired. Please reserve the ticket again.</span>
+          </div>
+        ) : (
+          <div className="countdown">
+            <span className="countdown__num">{timeLeft ?? "—"}</span>
+            <span>seconds left to pay</span>
+          </div>
+        )}
+
+        {errors}
+
+        {!expired && (
+          <Elements stripe={stripePromise}>
+            <CheckoutForm doRequest={doRequest} />
+          </Elements>
+        )}
+      </div>
     </div>
   );
 }
