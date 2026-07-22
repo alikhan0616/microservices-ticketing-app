@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: tickets
-          image: registry.digitalocean.com/ticketing-ak098/tickets
+          image: alikhan0616/tickets
           env:
             - name: NATS_CLIENT_ID
               valueFrom:

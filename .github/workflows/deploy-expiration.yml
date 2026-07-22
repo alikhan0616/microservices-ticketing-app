@@ -1,27 +1,25 @@
-name: deploy-auth
+name: deploy-expiration
 
 on:
   push:
     branches:
       - main
     paths:
-      - 'auth/**'
+      - "expiration/**"
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - run: cd auth && docker build -t alikhan0616/auth .
+      - run: cd expiration && docker build -t alikhan0616/expiration .
       - run: echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
         env:
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }} 
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-      - run: docker push alikhan0616/auth
+      - run: docker push alikhan0616/expiration
       - uses: digitalocean/action-doctl@v2
         with:
           token: ${{ secrets.DIGITAL_OCEAN_ACCESS_TOKEN }}
       - run: doctl kubernetes cluster kubeconfig save ticketing-dev
-      - run: kubectl rollout restart deployment auth-depl
-          
-      
+      - run: kubectl rollout restart deployment expiration-depl

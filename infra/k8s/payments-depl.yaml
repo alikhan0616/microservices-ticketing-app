@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: payments
-          image: registry.digitalocean.com/ticketing-ak098/payments
+          image: alikhan0616/payments
           env:
             - name: NATS_CLIENT_ID
               valueFrom:

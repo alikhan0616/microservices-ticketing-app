@@ -4,11 +4,10 @@ deploy:
   kubectl:
     manifests:
       - ./infra/k8s/*
+      - ./infra/k8s-dev/*
 build:
-  local:
-    push: true
   artifacts:
-    - image: registry.digitalocean.com/ticketing-ak098/auth
+    - image: alikhan0616/auth
       context: auth
       docker:
         dockerfile: Dockerfile
@@ -16,7 +15,7 @@ build:
         manual:
           - src: "src/**/*.ts"
             dest: .
-    - image: registry.digitalocean.com/ticketing-ak098/client
+    - image: alikhan0616/client
       context: client
       docker:
         dockerfile: Dockerfile
@@ -24,7 +23,7 @@ build:
         manual:
           - src: "src/**/*.js"
             dest: .
-    - image: registry.digitalocean.com/ticketing-ak098/tickets
+    - image: alikhan0616/tickets
       context: tickets
       docker:
         dockerfile: Dockerfile
@@ -32,7 +31,7 @@ build:
         manual:
           - src: "src/**/*.ts"
             dest: .
-    - image: registry.digitalocean.com/ticketing-ak098/orders
+    - image: alikhan0616/orders
       context: orders
       docker:
         dockerfile: Dockerfile
@@ -40,7 +39,7 @@ build:
         manual:
           - src: "src/**/*.ts"
             dest: .
-    - image: registry.digitalocean.com/ticketing-ak098/expiration
+    - image: alikhan0616/expiration
       context: expiration
       docker:
         dockerfile: Dockerfile
@@ -48,7 +47,7 @@ build:
         manual:
           - src: "src/**/*.ts"
             dest: .
-    - image: registry.digitalocean.com/ticketing-ak098/payments
+    - image: alikhan0616/payments
       context: payments
       docker:
         dockerfile: Dockerfile
