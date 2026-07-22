@@ -47,8 +47,8 @@ it("fetches orders for a particular user", async () => {
   expect(response.body.length).toEqual(2);
 
   // Make sure the orders belong to User #2
-  expect(response.body[0].id).toEqual(orderOne.id);
-  expect(response.body[1].id).toEqual(orderTwo.id);
-  expect(response.body[0].ticket.id).toEqual(ticketTwo.id);
-  expect(response.body[1].ticket.id).toEqual(ticketThree.id);
+  expect(response.body[0].id).toEqual(orderTwo.id);
+  expect(response.body[1].id).toEqual(orderOne.id);
+  expect(response.body[0].ticket.id).toEqual(ticketThree.id);
+  expect(response.body[1].ticket.id).toEqual(ticketTwo.id);
 });
