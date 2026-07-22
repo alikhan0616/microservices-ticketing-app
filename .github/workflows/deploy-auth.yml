@@ -13,9 +13,15 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - run: cd auth && docker build -t alikhan0616/auth .
-      - run: docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+      - run: docker login -u $DOCKER_USERNAME --password-stdin $DOCKER_PASSWORD
         env:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }} 
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
       - run: docker push alikhan0616/auth
+      - uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITAL_OCEAN_ACCESS_TOKEN }}
+      - run: doctl kubernetes cluster kubeconfig save ticketing-dev
+      - run: kubectl rollout restart deployment auth-depl
+          
       
