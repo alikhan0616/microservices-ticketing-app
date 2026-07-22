@@ -10,8 +10,7 @@ export default function buildClient({ req, headers: requestHeaders } = {}) {
         : (req?.headers ?? {});
 
     return axios.create({
-      baseURL:
-        "http://ingress-nginx-controller.ingress-nginx.svc.cluster.local",
+      baseURL: "http://www.microtix.space/",
       headers,
     });
   } else {
