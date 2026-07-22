@@ -2,7 +2,7 @@
 const nextConfig = {
   /* config options here */
   reactCompiler: true,
-  allowedDevOrigins: ["ticketing.dev"],
+  allowedDevOrigins: ["ticketing.dev", "www.microtix.space"],
 };
 
 export default nextConfig;
